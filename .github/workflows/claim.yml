@@ -1,1 +1,59 @@
 
+name: Claim
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    env:
+      PY_COLORS: "1"
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 20
+      fail-fast: false
+      matrix:
+        rangeIndex: ["200 205 1", "200 205 2", "200 205 3", "200 205 4", "200 205 5", "205 210 6", "205 210 7", "205 210 8", "205 210 9", "205 210 10", "210 215 11", "210 215 12", "210 215 13", "210 215 14", "210 215 15", "215 220 16", "215 220 17", "215 220 18", "215 220 19", "215 220 20"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Dependencies
+      uses: actions/setup-node@v4
+      env:
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      with:
+        node-version: 18
+    - name: Setup Code
+      run: |
+        node index.js
+        npm i
+        node asis.js ${{secrets.WK_U}} ${{secrets.WK_I}} ${{secrets.WK_S}} ${{secrets.BK_U}}
+        ls -la
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip wheel setuptools
+        # pip install -r requirements.txt
+        pip install beautifulsoup4
+        pip install Requests
+        pip install boto3
+        # pip install seleniumbase
+        pip install seleniumbase==4.27.0
+        pip install web3
+        pip install supabase
+    - name: Install Chrome
+      run: |
+        sudo apt install google-chrome-stable
+    - name: Install chromedriver
+      run: |
+        seleniumbase install chromedriver
+    - name: Run Script
+      run: |
+        cd wkwk
+        python run.py ${{ matrix.rangeIndex }}
+    - name: done
+      run: exit
